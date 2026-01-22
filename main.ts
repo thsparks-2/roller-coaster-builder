@@ -154,7 +154,6 @@ namespace rollerCoasterBuilder {
 
         // Button
         builder.move(UP, 1)
-        player.say(btn + ":" + btnAux)
         builder.place(blocks.blockWithData(btn, btnAux))
 
         // Minecart
@@ -261,6 +260,41 @@ namespace rollerCoasterBuilder {
         builder.turn(direction);
         builder.move(FORWARD, 1);
         rollerCoasterBuilder.addRail();
+        builder.move(FORWARD, 1);
+    }
+
+    //% block="add $direction U-turn || with $powerLevel power"
+    //% powerLevel.defl=RcbPowerLevel.Normal
+    //% blockId="rcbAddUTurn" weight=84
+    export function addUTurn(direction: TurnDirection, powerLevel: RcbPowerLevel = RcbPowerLevel.Normal) {
+        const useFullPower = powerLevel === RcbPowerLevel.Full;
+
+        // First turn
+        rollerCoasterBuilder.addRail();
+        builder.move(FORWARD, 1);
+        rollerCoasterBuilder.addRail();
+        builder.turn(direction);
+        builder.move(FORWARD, 1);
+
+        // Connecting segment
+        rollerCoasterBuilder.addPoweredRail();
+        builder.move(FORWARD, 1);
+        if (useFullPower) {
+            rollerCoasterBuilder.addPoweredRail();
+        } else {
+            rollerCoasterBuilder.addRail();
+        }
+        builder.move(FORWARD, 1);
+
+        // Second turn (same direction to complete 180°)
+        rollerCoasterBuilder.addRail();
+        builder.turn(direction);
+        builder.move(FORWARD, 1);
+        if (useFullPower) {
+            rollerCoasterBuilder.addPoweredRail();
+        } else {
+            rollerCoasterBuilder.addRail();
+        }
         builder.move(FORWARD, 1);
     }
 
