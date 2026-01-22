@@ -264,10 +264,10 @@ namespace rollerCoasterBuilder {
     }
 
     //% block="add $direction U-turn || with width $width" and $powerLevel power
-    //% width.min=4 width.defl=4
+    //% width.min=4 width.defl=5
     //% powerLevel.defl=RcbPowerLevel.Normal
     //% blockId="rcbAddUTurn" weight=84
-    export function addUTurn(direction: TurnDirection, width: number = 4, powerLevel: RcbPowerLevel = RcbPowerLevel.Normal) {
+    export function addUTurn(direction: TurnDirection, width: number = 5, powerLevel: RcbPowerLevel = RcbPowerLevel.Normal) {
         const useFullPower = powerLevel === RcbPowerLevel.Full;
 
         // First turn
