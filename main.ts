@@ -280,7 +280,7 @@ namespace rollerCoasterBuilder {
         // Connecting segment (width minus 2 for the turn rails on each end)
         let segmentLength = width - 2;
         for (let i = 0; i < segmentLength; i++) {
-            if (useFullPower || i % powerInterval == 0) {
+            if (powerLevel != RcbPowerLevel.No || useFullPower || i % powerInterval == 0) {
                 rollerCoasterBuilder.addPoweredRail();
             } else {
                 rollerCoasterBuilder.addRail();
