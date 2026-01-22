@@ -263,10 +263,11 @@ namespace rollerCoasterBuilder {
         builder.move(FORWARD, 1);
     }
 
-    //% block="add $direction U-turn || with $powerLevel power"
+    //% block="add $direction U-turn || with width $width" and $powerLevel power
+    //% width.min=4 width.defl=4
     //% powerLevel.defl=RcbPowerLevel.Normal
     //% blockId="rcbAddUTurn" weight=84
-    export function addUTurn(direction: TurnDirection, powerLevel: RcbPowerLevel = RcbPowerLevel.Normal) {
+    export function addUTurn(direction: TurnDirection, width: number = 4, powerLevel: RcbPowerLevel = RcbPowerLevel.Normal) {
         const useFullPower = powerLevel === RcbPowerLevel.Full;
 
         // First turn
@@ -276,15 +277,16 @@ namespace rollerCoasterBuilder {
         builder.turn(direction);
         builder.move(FORWARD, 1);
 
-        // Connecting segment
-        rollerCoasterBuilder.addPoweredRail();
-        builder.move(FORWARD, 1);
-        if (useFullPower) {
-            rollerCoasterBuilder.addPoweredRail();
-        } else {
-            rollerCoasterBuilder.addRail();
+        // Connecting segment (width minus 2 for the turn rails on each end)
+        let segmentLength = width - 2;
+        for (let i = 0; i < segmentLength; i++) {
+            if (useFullPower || i % powerInterval == 0) {
+                rollerCoasterBuilder.addPoweredRail();
+            } else {
+                rollerCoasterBuilder.addRail();
+            }
+            builder.move(FORWARD, 1);
         }
-        builder.move(FORWARD, 1);
 
         // Second turn (same direction to complete 180°)
         rollerCoasterBuilder.addRail();
