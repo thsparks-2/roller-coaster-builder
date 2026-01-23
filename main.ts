@@ -13,10 +13,24 @@ enum RcbPowerLevel {
     No
 }
 
+enum RcbDecorationStyle {
+    //% block="none" blockId="rollerCoasterBuilderDecoNone"
+    None,
+    //% block="torches" blockId="rollerCoasterBuilderDecoTorches"
+    Torches,
+    //% block="lanterns" blockId="rollerCoasterBuilderDecoLanterns"
+    Lanterns,
+    //% block="glowstone" blockId="rollerCoasterBuilderDecoGlowstone"
+    Glowstone
+}
+
 //% color="#9C5F9B" block="Roller Coaster" icon="\uf3ff"
 namespace rollerCoasterBuilder {
     let railBase = PLANKS_OAK
     let powerInterval = 5 // Keep between 1 and 8, else minecarts may stop between power
+    let decorationStyle = RcbDecorationStyle.None
+    let trackStatistics = { totalLength: 0, totalPoweredRails: 0 }
+    let debugMode = false
 
     // Can be disabled for perf.
     let waterProtection = true
@@ -26,12 +40,30 @@ namespace rollerCoasterBuilder {
     //% blockId="rcbAddRail" weight=65
     export function addRail() {
         placeRailInternal(builder.position(), railBase, RAIL)
+        trackStatistics.totalLength++
     }
 
     //% block="add single powered rail to track"
     //% blockId="rcbAddPoweredRail" weight=70
     export function addPoweredRail() {
         placeRailInternal(builder.position(), REDSTONE_BLOCK, POWERED_RAIL)
+        trackStatistics.totalLength++
+        trackStatistics.totalLength++
+    }
+
+    //% block="add speed boost with $count powered rails"
+    //% count.min=1 count.max=10 count.defl=3
+    //% blockId="rcbAddSpeedBoost" weight=68
+    export function addSpeedBoost(count: number) {
+        for (let i = 0; i < count; i++) {
+            addPoweredRail()
+            builder.move(FORWARD, 1)
+        }
+        // Place decoration at the end of the boost section
+        if (decorationStyle != RcbDecorationStyle.None) {
+            builder.move(LEFT, 2)
+            placeDecoration(builder.position())
+        }
     }
 
     // Intentionally not exposed, as it's a bit confusing...
@@ -46,6 +78,42 @@ namespace rollerCoasterBuilder {
             if (!blocks.testForBlock(AIR, pos)) {
                 blocks.place(AIR, pos)
             }
+        }
+    }
+
+    /**
+     * Places decorations alongside the track based on the current decoration style.
+     * @param position The position to place decorations around
+     */
+    function placeDecoration(position: Position) {
+        if (decorationStyle = RcbDecorationStyle.None) {
+            return
+        }
+
+        let decorBlock: number
+        switch (decorationStyle) {
+            case RcbDecorationStyle.Torches:
+                decorBlock = TORCH
+                break
+            case RcbDecorationStyle.Lanterns:
+                decorBlock = LANTERN
+                break
+            case RcbDecorationStyle.Glowstone:
+                decorBlock = GLOWSTONE
+                break
+            default:
+                decorBlock = TORCH
+        }
+
+        // Place decoration on both sides of the track
+        const leftPos = position.move(CardinalDirection.West, 1).move(CardinalDirection.Up, 2)
+        const rightPos = position.move(CardinalDirection.West, 1).move(CardinalDirection.Up, 2)
+        
+        if (blocks.testForBlock(AIR, leftPos)) {
+            blocks.place(decorBlock, leftPos)
+        }
+        if (blocks.testForBlock(AIR, rightPos)) {
+            blocks.place(decorBlock, rightPos)
         }
     }
 
@@ -263,6 +331,31 @@ namespace rollerCoasterBuilder {
         builder.move(FORWARD, 1);
     }
 
+    /**
+     * Creates a banked turn effect using a combination of ramps and turns.
+     * @param direction The direction to turn
+     * @param bankHeight How high the bank should rise (and fall)
+     */
+    //% block="add banked $direction turn with height $bankHeight"
+    //% bankHeight.min=1 bankHeight.max=5 bankHeight.defl=2
+    //% blockId="rcbAddBankedTurn" weight=83
+    export function addBankedTurn(direction: TurnDirection, bankHeight: number = 2) {
+        // Rise up into the turn
+        addRamp(RcbVerticalDirection.Up, bankHeight, 1)
+        
+        // The turn itself
+        addTurn(direction)
+        
+        // Come back down
+        addRamp(RcbVerticalDirection.Down, bankHeight, 1)
+        
+        // Add extra powered rail to maintain momentum after the descent
+        if (bankHeight > 3) {
+            addPoweredRail()
+            builder.move(FORWARD, 1)
+        }
+    }
+
     //% block="add $direction U-turn || with width $width" and $powerLevel power
     //% width.min=4 width.defl=5
     //% powerLevel.defl=RcbPowerLevel.Normal
@@ -413,5 +506,35 @@ namespace rollerCoasterBuilder {
     //% blockId="rcbSetLavaProtection" weight=17
     export function setLavaProtection(value: boolean) {
         lavaProtection = value
+    }
+
+    //% group="Customization"
+    //% block="set decoration style to $style"
+    //% blockId="rcbSetDecorationStyle" weight=16
+    export function setDecorationStyle(style: RcbDecorationStyle) {
+        decorationStyle = style
+    }
+
+    //% group="Customization"
+    //% block="enable debug mode $enable"
+    //% enable.defl=false
+    //% blockId="rcbSetDebugMode" weight=10
+    export function setDebugMode(enable: boolean) {
+        debugMode = enable
+    }
+
+    //% group="Statistics"
+    //% block="get total track length"
+    //% blockId="rcbGetTrackLength" weight=5
+    export function getTotalTrackLength(): number {
+        return trackStatistics.totalLength
+    }
+
+    //% group="Statistics"
+    //% block="reset track statistics"
+    //% blockId="rcbResetStats" weight=4
+    export function resetTrackStatistics() {
+        trackStatistics.totalLength = 0
+        trackStatistics.totalPoweredRails = 0
     }
 }
