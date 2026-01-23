@@ -17,6 +17,18 @@ This repository can be added as an **extension** in MakeCode.
 * click on **Extensions** under the gearwheel menu
 * search for **https://github.com/thsparks/roller-coaster-builder** and import
 
+## Available Blocks
+
+### U-Turn
+The **U-turn** block creates a 180° turn in your track, allowing the coaster to reverse direction.
+
+**Parameters:**
+- **direction** - Which way to turn (left or right)
+- **width** (optional) - The width of the U-turn, i.e., how far apart the paralleltrack segments are. Minimum value is 4 (default: 4)
+- **power** (optional) - What level of power to apply through the U-Turn.
+
+The U-turn automatically places powered rails at regular intervals to maintain momentum on longer turns.
+
 ## Edit this project ![Build status badge](https://github.com/thsparks/roller-coaster-builder/workflows/MakeCode/badge.svg)
 
 To edit this repository in MakeCode.
