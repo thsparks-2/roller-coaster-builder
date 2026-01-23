@@ -37,14 +37,22 @@ namespace rollerCoasterBuilder {
     let lavaProtection = true
 
     //% block="add single rail to track"
-    //% blockId="rcbAddRail" weight=65
+    /**
+     * Places a single normal rail at the builder's current position and records it in statistics.
+     *
+     * Increments the trackStatistics.totalLength counter to reflect the added rail.
+     */
     export function addRail() {
         placeRailInternal(builder.position(), railBase, RAIL)
         trackStatistics.totalLength++
     }
 
     //% block="add single powered rail to track"
-    //% blockId="rcbAddPoweredRail" weight=70
+    /**
+     * Place a powered rail at the builder's current position and update track statistics.
+     *
+     * Places a powered rail using the configured rail base and increments trackStatistics.totalLength by 2.
+     */
     export function addPoweredRail() {
         placeRailInternal(builder.position(), REDSTONE_BLOCK, POWERED_RAIL)
         trackStatistics.totalLength++
@@ -53,7 +61,11 @@ namespace rollerCoasterBuilder {
 
     //% block="add speed boost with $count powered rails"
     //% count.min=1 count.max=10 count.defl=3
-    //% blockId="rcbAddSpeedBoost" weight=68
+    /**
+     * Places `count` powered rails in a row, advancing the builder forward one block per rail, and optionally adds decoration at the end.
+     *
+     * @param count - Number of powered rails to place in sequence
+     */
     export function addSpeedBoost(count: number) {
         for (let i = 0; i < count; i++) {
             addPoweredRail()
@@ -71,6 +83,15 @@ namespace rollerCoasterBuilder {
         placeRailInternal(builder.position(), railBase, POWERED_RAIL)
     }
 
+    /**
+     * Ensures a vertical span of blocks above `position` is set to air.
+     *
+     * Starting `start` blocks above `position`, replaces up to `dist` consecutive blocks with air if they are not already air.
+     *
+     * @param position - The base position from which vertical offset is measured
+     * @param start - The number of blocks above `position` to begin clearing (0 = directly above)
+     * @param dist - The number of consecutive vertical blocks to ensure are air
+     */
     function placeAirAbove(position: Position, start: number, dist: number) {
         for (let i = 0; i <= dist - 1; i++) {
             // Check for air first or we get a bunch of "cannot place block" errors.
@@ -82,8 +103,11 @@ namespace rollerCoasterBuilder {
     }
 
     /**
-     * Places decorations alongside the track based on the current decoration style.
-     * @param position The position to place decorations around
+     * Places decorative blocks adjacent to a rail at the given position using the configured decoration style.
+     *
+     * If the decoration style is `None`, the function does nothing. Decorations are placed to the sides of the specified rail position only if the target spaces are air.
+     *
+     * @param position - The rail block position to place decorations around
      */
     function placeDecoration(position: Position) {
         if (decorationStyle = RcbDecorationStyle.None) {
@@ -117,6 +141,14 @@ namespace rollerCoasterBuilder {
         }
     }
 
+    /**
+     * Protects the track area by replacing fluid blocks in the axis-aligned box defined by two corners when protections are enabled.
+     *
+     * When water protection is enabled, water inside the box is replaced with glass to protect the track area; when lava protection is enabled, lava inside the box is replaced with glass.
+     *
+     * @param cornerOne - One corner of the axis-aligned rectangular region to process
+     * @param cornerTwo - Opposite corner of the axis-aligned rectangular region to process
+     */
     function replaceWaterAndLava(cornerOne: Position, cornerTwo: Position) {
         if (waterProtection) {
             blocks.replace(GLASS, 9, cornerOne, cornerTwo) // 9 == also water?
@@ -320,7 +352,11 @@ namespace rollerCoasterBuilder {
     }
 
     //% block="add $direction turn"
-    //% blockId="rcbAddTurn" weight=85
+    /**
+     * Creates a short three-rail turn in the given direction and positions the builder after the turn.
+     *
+     * @param direction - The turn direction to apply (e.g., left or right)
+     */
     export function addTurn(direction: TurnDirection) {
         rollerCoasterBuilder.addRail();
         builder.move(FORWARD, 1);
@@ -338,7 +374,14 @@ namespace rollerCoasterBuilder {
      */
     //% block="add banked $direction turn with height $bankHeight"
     //% bankHeight.min=1 bankHeight.max=5 bankHeight.defl=2
-    //% blockId="rcbAddBankedTurn" weight=83
+    /**
+     * Creates a banked turn by rising into a turn and descending back to track level.
+     *
+     * The track is raised by `bankHeight` blocks, a turn is performed in `direction`, and then the track descends by the same height. If `bankHeight` is greater than 3, an extra powered rail is placed after the descent and the builder advances one block to help maintain momentum.
+     *
+     * @param direction - The horizontal direction of the turn
+     * @param bankHeight - Number of blocks to rise for the bank (default 2)
+     */
     export function addBankedTurn(direction: TurnDirection, bankHeight: number = 2) {
         // Rise up into the turn
         addRamp(RcbVerticalDirection.Up, bankHeight, 1)
@@ -503,14 +546,22 @@ namespace rollerCoasterBuilder {
     //% group="Customization"
     //% block="set lava protection to $value"
     //% value.defl=true
-    //% blockId="rcbSetLavaProtection" weight=17
+    /**
+     * Set whether lava-protection behavior is enabled for track-building operations.
+     *
+     * @param value - `true` to enable lava protection (replace or guard lava during excavations), `false` to disable it
+     */
     export function setLavaProtection(value: boolean) {
         lavaProtection = value
     }
 
     //% group="Customization"
     //% block="set decoration style to $style"
-    //% blockId="rcbSetDecorationStyle" weight=16
+    /**
+     * Sets the decoration style used when placing decorative blocks alongside the track.
+     *
+     * @param style - The decoration style to apply (None, Torches, Lanterns, or Glowstone)
+     */
     export function setDecorationStyle(style: RcbDecorationStyle) {
         decorationStyle = style
     }
@@ -518,21 +569,33 @@ namespace rollerCoasterBuilder {
     //% group="Customization"
     //% block="enable debug mode $enable"
     //% enable.defl=false
-    //% blockId="rcbSetDebugMode" weight=10
+    /**
+     * Enable or disable debug mode for the rollerCoasterBuilder.
+     *
+     * @param enable - `true` to enable debug mode, `false` to disable it
+     */
     export function setDebugMode(enable: boolean) {
         debugMode = enable
     }
 
     //% group="Statistics"
     //% block="get total track length"
-    //% blockId="rcbGetTrackLength" weight=5
+    /**
+     * Retrieves the cumulative length of all placed track segments.
+     *
+     * @returns The total number of rail segments placed so far
+     */
     export function getTotalTrackLength(): number {
         return trackStatistics.totalLength
     }
 
     //% group="Statistics"
     //% block="reset track statistics"
-    //% blockId="rcbResetStats" weight=4
+    /**
+     * Reset the roller-coaster track statistics counters.
+     *
+     * Sets the internal `totalLength` and `totalPoweredRails` counters to zero.
+     */
     export function resetTrackStatistics() {
         trackStatistics.totalLength = 0
         trackStatistics.totalPoweredRails = 0
